@@ -1,1 +1,215 @@
+import pandas as pd
 import numpy as np
+
+#Loading dataset from an Excel file
+data = pd.read_excel("/content/embeddingsdata.xlsx", sheet_name="Sheet1")
+df = pd.DataFrame(data)
+df
+
+
+#Accepting user input for the column numbers
+
+column1 = input("Enter the number of the first column : ")
+column2 = input("Enter the number of the second column : ")
+
+#Generating the column names with the "embed_" prefix
+
+column_name1 = f"embed_{column1}"
+column_name2 = f"embed_{column2}"
+
+#Checking if the generated column names exist in the dataset
+
+if column_name1 not in data.columns or column_name2 not in data.columns:
+    print("One or both of the specified columns do not exist in the dataset.")
+else:
+    #Selecting the specified columns
+
+    selected_columns = [column_name1, column_name2]
+    data_selected = data[selected_columns]
+
+    #Calculating the mean vectors (centroids) for the selected columns
+
+    mean_column1 = data_selected[column_name1].mean()
+    mean_column2 = data_selected[column_name2].mean()
+
+    #Calculating the standard deviations (spread) for the selected columns
+
+    std_dev_column1 = data_selected[column_name1].std()
+    std_dev_column2 = data_selected[column_name2].std()
+
+    #Calculating the Euclidean distance between the two mean
+
+    distance_between_columns = np.linalg.norm(mean_column1 - mean_column2)
+
+    # Step 9: Print the results
+    print(f"Mean Vector for '{column_name1}':", mean_column1)
+    print(f"Mean Vector for '{column_name2}':", mean_column2)
+    print(f"Standard Deviation for '{column_name1}':", std_dev_column1)
+    print(f"Standard Deviation for '{column_name2}':", std_dev_column2)
+    print(f"Euclidean Distance between '{column_name1}' and '{column_name2}':", distance_between_columns)
+
+import matplotlib.pyplot as plt
+
+plt.hist(data_selected[column_name1],bins=40,color='green',edgecolor='black')
+plt.xlabel('Attribute Values')
+plt.ylabel('Frequency')
+plt.title('Histogram diagram')
+plt.show()
+
+#calculating the mean of selected column 1
+
+mean1 = data_selected[column_name1].mean()
+print("The mean of of selected feature: ",mean1)
+
+#calculating the variance of embed_10
+var1 = data_selected[column_name1].var()
+print("The variance of selected feature: ",var1)
+
+import numpy as np
+#vectorizing the columns
+vector_1 = df['embed_110'].to_numpy()
+vector_2 = df['embed_717'].to_numpy()
+range_ = range(1,17)
+RD = []
+for a in range_:
+    #Calculating the distance
+    dist = np.power(np.sum(np.abs(vector_1 - vector_2) ** a),1.0 / a)
+    RD.append(dist)
+plt.figure(figsize=(5, 5))
+plt.plot(range_, RD, marker='o', linestyle='--', color='blue')
+plt.xlabel('range_')
+plt.ylabel('Minkowski Distance')
+plt.title('Minkowski Distance vs. range_')
+plt.grid(True)
+plt.show()
+
+from sklearn.model_selection import train_test_split
+#Converting data into an array using the numpy library
+data= np.array(data)
+#all rows, all columns except the last column
+X = data[:,:-1]
+#all rows, only the last column
+y = data[:,-1]
+X_Train,X_Test,Y_Train,Y_Test = train_test_split(X,y,test_size=0.3,random_state=45)
+#random_state we run the code, the data will be shuffled in the same way, resulting in the same training and testing subsets.
+
+from sklearn.neighbors import KNeighborsClassifier
+#used to convert labels to integers
+from sklearn.preprocessing import LabelEncoder
+from sklearn.neighbors import KNeighborsRegressor
+#using regression here as the y_train values are continous and not discrete
+knn = KNeighborsRegressor(n_neighbors=3)
+# Training the regressor
+knn.fit(X_Train, Y_Train)
+
+#Calculate the accuracy of the kNN classifier on the test set
+accuracy = knn.score(X_Test, Y_Test)
+#score(): It is a method to return the mean accuracy . The accuracy value will be between 0 and 1, where 1 represents a perfect prediction.
+print("Accuracy:", accuracy)
+
+# Making predictions on the test vectors
+p = knn.predict(X_Test)
+print("Predicted labels:")
+#predict(): It is a function of the kNN classifier to study the prediction behavior for test vectors.
+#The predict() function takes the test vectors as input and returns the predicted class labels
+print(p)
+
+#for classification values
+from sklearn.metrics import classification_report
+#for continous values where regression is to be applied
+from sklearn.metrics import r2_score
+#Radius neighbour regressor is used for predicting "continuous target variables" based on the values of the nearest neighbors within a specified radius.
+from sklearn.neighbors import RadiusNeighborsRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import confusion_matrix
+
+# Train the NN classifier with k=1
+nn = KNeighborsRegressor(n_neighbors=1)
+nn.fit(X_Train, Y_Train)
+
+# Train the kNN classifier with k=3
+knn = KNeighborsRegressor(n_neighbors=3)
+knn.fit(X_Train, Y_Train)
+
+# Make predictions on the test set
+nn_predictions = nn.predict(X_Test)
+knn_predictions = knn.predict(X_Test)
+
+# Calculate the mean squared error (MSE)
+nn_mse = mean_squared_error(Y_Test, nn_predictions)
+knn_mse = mean_squared_error(Y_Test, knn_predictions)
+
+# Calculate the R-squared score
+nn_r2 = r2_score(Y_Test, nn_predictions)
+knn_r2 = r2_score(Y_Test, knn_predictions)
+
+# Print the results
+print("Results for NN (k=1):")
+print("MSE:", nn_mse)
+print("R-squared score:", nn_r2)
+
+print("\nResults for kNN (k=3):")
+print("MSE:", knn_mse)
+print("R-squared score:", knn_r2)
+
+import matplotlib.pyplot as plt
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+
+predictions1 = []
+predictions2 = []
+
+for k in range(1, 11):
+    knn = KNeighborsRegressor(n_neighbors=k)
+     #fit() used to train the regressor
+    knn.fit(X_Train, Y_Train)
+    knn_predictions = knn.predict(X_Test)
+    knn_mse = mean_squared_error(Y_Test, knn_predictions)
+    knn_r2 = r2_score(Y_Test, knn_predictions)
+    predictions1.append(knn_mse)
+    predictions2.append(knn_r2)
+
+plt.figure(figsize=(8, 5))
+plt.plot(range(1, 11), predictions1, marker='o', linestyle='--', color='green', label='MSE values')
+plt.plot(range(1, 11), predictions2, marker='o', linestyle='--', color='blue', label='R^2 values')  # Add a label for the second plot
+plt.xlabel('K-Values')
+plt.ylabel('Value')
+plt.title('Accuracy plot')
+plt.grid(True)
+plt.legend()  # Add this line to display the legend
+plt.show()
+
+from sklearn.metrics import confusion_matrix
+cn = confusion_matrix(y_true,knn_predictions)
+print(cn)
+
+import matplotlib.pyplot as plt
+# Assuming you have a dataset named 'data' and want to plot a column named 'column_name'
+# Extract the column data
+c1 = df['embed_13']
+c2 = df['embed_14']
+# Create a scatter plot
+plt.scatter(df['embed_13'], df['embed_14'], c='green', label='Column 1')
+# Add labels and title
+plt.xlabel('Embed_13')
+plt.ylabel('Embed_14')
+plt.title('Scatter Plot of Embed columns')
+
+# Show the plot
+plt.show()
+
+import matplotlib.pyplot as plt
+# Assuming you have a dataset named 'data' and want to plot a column named 'column_name'
+# Extract the column data
+c1 = df['embed_43']
+c2 = df['embed_76']
+# Create a scatter plot
+plt.scatter(df['embed_43'], df['embed_76'], c='red', label='Column 1')
+# Add labels and title
+plt.xlabel('Embed_43')
+plt.ylabel('Embed_76')
+plt.title('Scatter Plot of Embed columns')
+
+# Show the plot
+plt.show()
+
